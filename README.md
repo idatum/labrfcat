@@ -13,6 +13,7 @@ Each symbol pulse is ~2.49ms.
 Every packet starts with a single 010 octal (preamble).
 
 The remote's battery compartment has 2 banks of 4 switches, labeled SW8 and SW9.
+
 ![Remote switch banks](assets/images/minka_switches.png)
 
 The switch ON/OFF settings are included in the packet.
@@ -30,9 +31,10 @@ SLOW = '010010110010'
 MED = '010110010010'
 FAST = '110010010010'
 ```
-There is also a 4 octal command for the fan's LED light. This single command toggles the light.
+There are also octal commands for the fan's LED light. Each single command, for each button on remote, toggles the light. I'm not sure what the different buttons are meant to do. I named the variable LIGHT1 for the top (smaller) button, and LIGHT2 for bottom.
 ```
-LIGHT = '010110010110'
+LIGHT1 = '010110010110'
+LIGHT2 = '110010010110'
 ```
 If you hold down one of the light buttons on the physical remote, you cycle through dimming and brightening the LED light. I didn't implement this, and I really didn't think I'd use it since the LED light on my fan doesn't really dim that well anyway.
 
@@ -40,7 +42,7 @@ Only one command can be sent in a packet.
 
 A complete packet consists of the single preamble octal, 4 octals for the SW8 switch, 4 octals for SW9, and 4 octals for the command. This is a total of 39 bits. The RFxmit method expects a string of bytes, so we have to convert the string representation of the 39 octal bits to a string of bytes with hex escape codes where needed.
 ```
-bits = PREAMBLE + SW8 + SW9 + CMD
+bits = PREAMBLE + SW8 + SW9 + CMD + '0'
 b''.join([struct.pack('B', int(bits[i:i+8], 2)) for i in range(0, len(bits), 8)])
 ```
 This does the trick using the struct module, taking 8 bit chunks from the transmit bits, plus the remaining single zero'd bit to round out 5 bytes (40 bits) total.
